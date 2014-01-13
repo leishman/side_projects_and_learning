@@ -8,7 +8,7 @@ class RapGenius
     @agent = Mechanize.new
     @query = query
     @base_url = 'http://rapgenius.com'
-    @home_page = agent.get @base_url
+    @home_page = @agent.get @base_url
   end
 
   def search
@@ -30,25 +30,20 @@ class RapGenius
 
   def grab_lyrics(lyrics_page_link)
     lyrics_page = @agent.get lyrics_page_link
-    # binding.pry
-    # lyrics_page.search('.lyrics').text
     lyrics_page.search('.lyrics a').map{ |link| link.text + "\n" }.join
   end
 
 end
 
 rap_genius = RapGenius.new ARGV.join(' ')
-# rap_genius = RapGenius.new('freaks and geeks')
 lyrics = rap_genius.search
 
 puts "\n\n\n"
-# puts lyrics.length
-# puts lyrics
 lyrics_file = File.new("lyrics.txt", "w+")
 lyrics_file.puts(lyrics)
 lyrics_file.close
 
-exec "lolcat lyrics.txt && cat lyrics.txt | say -v Cellos"
+exec "lolcat lyrics.txt && cat lyrics.txt | say -v Alex"
 
 
 

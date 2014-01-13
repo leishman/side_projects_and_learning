@@ -1,7 +1,6 @@
 require_relative 'rap_genius'
 require 'rspec'
 
-
   describe RapGenius do
 
     before(:all) do
@@ -13,8 +12,6 @@ require 'rspec'
       @rap_genius.query.should_not be_nil
       @rap_genius.home_page.should_not be_nil
     end
-
-
 
     context 'when search executed' do
 
