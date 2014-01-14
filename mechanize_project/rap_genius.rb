@@ -30,7 +30,7 @@ class RapGenius
 
   def grab_lyrics(lyrics_page_link)
     lyrics_page = @agent.get lyrics_page_link
-    lyrics_page.search('.lyrics a').map{ |link| link.text + "\n" }.join
+    lyrics_page.search('.lyrics').map{ |link| link.text + "\n" }.join
   end
 
 end
@@ -39,11 +39,9 @@ rap_genius = RapGenius.new ARGV.join(' ')
 lyrics = rap_genius.search
 
 puts "\n\n\n"
+puts lyrics
 lyrics_file = File.new("lyrics.txt", "w+")
 lyrics_file.puts(lyrics)
 lyrics_file.close
-
-exec "lolcat lyrics.txt && cat lyrics.txt | say -v Alex"
-
-
-
+puts lyrics
+# exec "lolcat lyrics.txt && cat lyrics.txt | say -v Alex"
