@@ -15,15 +15,16 @@ class Controller
     view.render_start
     while true
       if check_credentials
-        run_program
+        view.render_post_auth("leishman")
+        run_command_interface
+        break
       else
         puts view.render_redo("password")
       end
     end
   end
 
-  def run_program
-    view.render_post_auth("leishman")
+  def run_command_interface
     command = view.render_options
     model.execute_command(command)
     view.render(model.response)

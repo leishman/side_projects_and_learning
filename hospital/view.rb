@@ -1,12 +1,16 @@
 require 'highline/import'
 class View
 
+  # def initialize
+  # end
+
   def render_start
     puts <<-eos
 Welcome to Alex's Hospital
 --------------------------
 eos
   end
+
   def username_prompt
     ask("Please enter your username:\n")
   end
@@ -40,7 +44,15 @@ ask("Please enter your choice\n")
   end
 
   def render(object)
-    puts object
+    @view_object = object
+    if @view_object[0].class == Patient
+      render_patient_list
+    end
   end
 
+  def render_patient_list
+    @view_object.each do |patient|
+      puts "#{patient.id}".ljust(3) + "#{patient.name}".ljust(20) + "#{patient.inpatient}"
+    end
+  end
 end

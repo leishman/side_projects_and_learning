@@ -42,7 +42,6 @@ class Model
   def remove_record
   end
 
-
   def authenticate_user(credentials)
     username = credentials[:username]
     user = find_by_username(username)
@@ -96,10 +95,16 @@ class Model
   end
 end
 
-# class GhettoActiveRecord
-#   def initialize(read_write_object)
-#   end
-# end
+class GhettoActiveRecord
+  def initialize(read_write_object)
+  end
+
+   def find_by_field(field_name, value)
+    employee_records.each do |employee|
+      return employee if employee[:username] == username
+    end
+  end
+end
 
 
 class ReadWrite
@@ -157,11 +162,12 @@ class Patient
   def initialize(options = {})
     # @id = @@id
     # @@id += 1
+    @id = options[:id]
     @name = options[:name]
     @age = options[:age]
     @gender = options[:gender]
     @inpatient = options.fetch(:inpatient){ false }
-    @records = []
+    @record_ids = []
   end
 
   def check_in
@@ -173,8 +179,13 @@ class Patient
   end
 
   def add_record(record)
-    @records << record
+    @records << record.id
   end
+
+  def record
+
+  end
+
 end
 
 # class Record
