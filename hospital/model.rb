@@ -1,41 +1,121 @@
 require 'csv'
 require 'digest'
 
+module Crypto
+  def hash(pwd)
+    sha256 = Digest::SHA256.new
+    digest = sha256.hexdigest pwd
+  end
+end
+
 class Model
+  include Crypto
+  attr_reader :patient_records, :employee_records, :response
 
   def initialize
-    # load_records
+    @patient_records = []
+    @employee_records = []
+    load_records
   end
 
   def load_records
-
+    load_employees
+    load_patients
+    # load_records
   end
 
-  def execute_command
-    send(command.to_sym)
+  def execute_command(command)
+    command_array = command.split(' ')
+    send(command_array[0].to_sym)
   end
+
+  def list_patients
+    @response = @patient_records
+  end
+
+  def view_records
+  end
+
+  def add_record
+  end
+
+  def remove_record
+  end
+
 
   def authenticate_user(credentials)
-    # get_users
+    username = credentials[:username]
+    user = find_by_username(username)
+    # puts user#[:password_hash]
+    password = credentials[:password]
+    self.hash(password) == user[:password_hash]
+  end
 
+  def find_by_username(username)
+    employee_records.each do |employee|
+      return employee if employee[:username] == username
+    end
+  end
+
+  ##### Patient methods ####
+
+  def write_patients!
+    @patient_read_write.write_to_csv employee_records
   end
 
   def load_patients
+    @patient_read_write = ReadWrite.new('patients.csv').data
+    @patient_read_write.each do |patient|
+      patient_records << Patient.new(patient)
+    end
+  end
+
+  def add_patient
 
   end
 
-  def load_doctors
+  def add_record
 
   end
 
-  def load_users
+  #### Employee methods ####
+
+  def add_employee
 
   end
 
-  def read_from_csv(file) # returns array of hashes with csv values
+  def write_employees!
+    @employee_read_write.write_to_csv employee_records
+  end
+
+  def load_employees
+    @employee_read_write = ReadWrite.new('employees.csv').data
+    @employee_read_write.each do |employee|
+      employee_records << employee
+    end
+  end
+end
+
+# class GhettoActiveRecord
+#   def initialize(read_write_object)
+#   end
+# end
+
+
+class ReadWrite
+  attr_reader :filename, :headers
+  attr_accessor :data
+
+  def initialize(filename)
+    @filename = filename
+    @headers = []
+    @data = []
+    read_from_csv # read data to memory on initialization
+  end
+
+  def read_from_csv # returns array of hashes with csv values
     keys = []
-    data = []
-    CSV.foreach(file) do |row|
+    CSV.foreach(filename) do |row|
      if $. == 1
         keys = row.map{ |element| element.to_sym }
       else
@@ -47,27 +127,36 @@ class Model
     data
   end
 
-  def write_to_csv!(file, data) # creates and writes/overwrites csv file from array of hashes
+  def write_to_csv! # creates and writes/overwrites csv file from array of hashes
     CSV.open(file, 'wb') do |csv|
-      data.each_with_index do |line, index|
-        if index == 0
-          headers = []
-          line.each{ |k, v| headers << k }
-          csv << headers
-        end
-        data_to_write = []
-        line.each{ |k, v| data_to_write << v }
-        csv << data_to_write
-      end
+      write_header(csv)
+      write_body(csv)
+    end
+  end
+
+  def write_header(csv)
+    headers = []
+    data[0].each{ |k, v| headers << k  }
+    csv << headers
+  end
+
+  def write_body(csv)
+    data.each_with_index do |line|
+      data_to_write = []
+      line.each{ |k, v| data_to_write << v }
+      csv << data_to_write
     end
   end
 end
 
 class Patient
+  # @@id = 0
 
-  attr_reader :name, :age, :gender, :inpatient, :records
+  attr_reader :id, :name, :age, :gender, :inpatient, :records
 
   def initialize(options = {})
+    # @id = @@id
+    # @@id += 1
     @name = options[:name]
     @age = options[:age]
     @gender = options[:gender]
@@ -88,21 +177,22 @@ class Patient
   end
 end
 
-class Record
-  @@recent_record_id = 0
+# class Record
+#   @@recent_record_id = 0
 
-  attr_reader :id, :content
+#   attr_reader :id, :content
 
-  def initialize(content)
-    @id = @@recent_record_id
-    @@recent_record_id += 1
-    @content = content
-  end
-end
+#   def initialize(content)
+#     @id = @@recent_record_id
+#     @@recent_record_id += 1
+#     @content = content
+#   end
+# end
 
 class Employee
+  include Crypto
 
-  attr_reader :name, :position, :salary, :age, :gender, :username, :pwd_hash
+  attr_reader :name, :position, :salary, :age, :gender, :username, :password_hash
 
   def initialize(options = {})
     @name = options[:name]
@@ -111,20 +201,10 @@ class Employee
     @age = options[:age]
     @gender = options[:gender]
     @username = options[:username]
-    @pwd_hash = hash options[:password]
+    p options[:password]
+    @password_hash = self.hash options[:password]
   end
-
-  private
-    def hash(pwd)
-      sha256 = Digest::SHA256.new
-      digest = sha256.hexdigest pwd
-    end
 end
-
-# class Admin < Employee
-
-# end
-
 
 class Hospital
   attr_reader :employees, :patients

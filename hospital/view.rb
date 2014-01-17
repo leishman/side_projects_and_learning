@@ -8,8 +8,7 @@ Welcome to Alex's Hospital
 eos
   end
   def username_prompt
-    puts "Please enter your username:\n"
-    gets.chomp
+    ask("Please enter your username:\n")
   end
 
   def password_prompt
@@ -37,6 +36,11 @@ Options:
 - add_record <patient_id>
 - remove_record <patient_id> <record_id>
 eos
-end
+ask("Please enter your choice\n")
+  end
+
+  def render(object)
+    puts object
+  end
 
 end

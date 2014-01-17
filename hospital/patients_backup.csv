@@ -1,0 +1,6 @@
+id,name,age,gender,inpatient,records
+1,bob,23,m,true,fever
+2,jim,33,m,false,fever
+3,bob,23,m,true,fever
+4,atlas,23,m,false,trauma
+5,bobby,23,m,true,fever

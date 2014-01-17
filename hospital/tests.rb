@@ -15,18 +15,26 @@ end
 
 describe Model do
   # before :each do
-  @model = Model.new
+  # @model = Model.new
   # end
 
   describe "#initialize" do
 
   end
   describe "IO functions" do
-    @model = Model.new
-    @data_to_write = [{a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}]
-    @model.write_to_csv!('test.csv', @data_to_write)
-    data = @model.read_from_csv('test.csv')
+    # @model = Model.new
+    # @data_to_write = [{a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}]
+    # @model.write_to_csv!('test.csv', @data_to_write)
+    # data = @model.read_from_csv('test.csv')
 
     # expect(data[0]).to be_instance_of(Hash)
+  end
+
+  describe "authentication" do
+    model = Model.new
+    model.load_patients
+    model.load_employees
+    # puts model.patient_records
+    # model.authenticate_user
   end
 end

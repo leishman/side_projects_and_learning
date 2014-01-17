@@ -8,15 +8,28 @@ class Controller
   def initialize
     @view = View.new
     @model = Model.new
-    run_program
+    run_login
+  end
+
+  def run_login
+    view.render_start
+    while true
+      if check_credentials
+        run_program
+      else
+        puts view.render_redo("password")
+      end
+    end
   end
 
   def run_program
-    view.render_start
-    get_credentials
+    view.render_post_auth("leishman")
+    command = view.render_options
+    model.execute_command(command)
+    view.render(model.response)
   end
 
-  def get_credentials
+  def check_credentials
     credentials = Hash.new
     credentials[:username] = view.username_prompt
     credentials[:password] = view.password_prompt
