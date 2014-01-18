@@ -171,45 +171,6 @@ class Model
   #   end
   # end
 end
-  ##### Patient methods ####
-
-#   def write_patients!
-#     @patient_read_write.write_to_csv patient_records
-#   end
-
-#   def load_patients
-#     @patient_read_write = ReadWrite.new('patients.csv').data
-#     @patient_read_write.each do |patient|
-#       patient_records << Patient.new(patient)
-#     end
-#   end
-
-#   #### Employee methods ####
-
-
-#   def write_employees!
-#     @employee_read_write.write_to_csv employee_records
-#   end
-
-#   def load_employees
-#     @employee_read_write = ReadWrite.new('employees.csv').data
-#     @employee_read_write.each do |employee|
-#       employee_records << employee
-#     end
-#   end
-# end
-
-# class GhettoActiveRecord
-#   def initialize(read_write_object)
-#   end
-
-#   def find_by_field(field_name, value)
-#     employee_records.each do |employee|
-#       return employee if employee[:username] == username
-#     end
-#   end
-# end
-
 
 class ReadWrite
 
