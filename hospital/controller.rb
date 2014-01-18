@@ -19,7 +19,7 @@ class Controller
         run_command_interface
         break
       else
-        puts view.render_redo("password")
+        view.render_redo("password")
       end
     end
   end
@@ -27,7 +27,18 @@ class Controller
   def run_command_interface
     command = view.render_options
     model.execute_command(command)
-    view.render(model.response)
+    puts model.response
+    parse_response(model.response)
+    model.accept_input
+  end
+
+  def parse_response(response)
+    if response.is_a?(Symbol)
+      @user_reply = view.render_require(response.to_s)
+      model.view_input = @user_reply
+    else
+      view.render_table(response)
+    end
   end
 
   def check_credentials

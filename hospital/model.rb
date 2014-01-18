@@ -3,36 +3,8 @@ require 'digest'
 
 module Crypto
   def hash(pwd)
-    sha256 = Digest::SHA256.new
-    digest = sha256.hexdigest pwd
+    Digest::SHA256.hexdigest pwd
   end
-end
-
-class Employee
-  def self.all
-
-  end
-end
-
-all_records = Model.new
-# all_records.load
-
-record_repository = RecordRepository.new
-
-patients = record_repository.patients
-patients.list
-patients.add(name: "username",dob: "10/13/1111")
-patients.save
-
-employees = record_repository.employees
-prescriptions = record_repository.prescriptions
-
-class RecordRepository
-
-  def patients
-    PatientRecords.new
-  end
-
 end
 
 class RecordsHolder
@@ -41,7 +13,9 @@ class RecordsHolder
   end
 
   def raw_data
-    ReadWrite.new(records_file).data
+    @rw = ReadWrite.new(records_file)
+    @raw_data ||= ReadWrite.new(records_file).data
+
   end
 
   def new_model(data)
@@ -66,7 +40,25 @@ class RecordsHolder
 
   def add(data)
     all.push new_model(data)
+    @rw.data.push data
   end
+
+  def save!
+    # raw_data.data = all
+    @rw.write_to_csv!
+  end
+
+  def find_all_by(field, value)
+    all.select{ |obj| obj.instance_variable_get(field) == value }
+  end
+
+  # query_result = []
+  # raw_data.each do |row|
+  #   if values.include?(row[field.to_sym])
+  #     query_result.push row
+  #   end
+  # end
+  # query_result
 end
 
 class PatientRecords < RecordsHolder
@@ -78,115 +70,149 @@ class PatientRecords < RecordsHolder
   def new_model(data)
     Patient.new(data)
   end
-
 end
 
+class EmployeeRecords < RecordsHolder
 
-class Model
-  include Crypto
-  attr_reader :patient_records, :employee_records, :response
-
-  def initialize
-    @patient_records = []
-    @employee_records = []
-    load_records
+  def records_file
+    'employees.csv'
   end
 
-  def load_records
-    load_employees
-    load_patients
+  def new_model(data)
+    Employee.new(data)
+  end
+end
+
+class ReportRecords < RecordsHolder
+
+  def records_file
+    'reports.csv'
+  end
+
+  def new_model(data)
+    Report.new(data)
+  end
+end
+
+class RecordRepository
+
+  def patients
+    PatientRecords.new
+  end
+
+  def employees
+    EmployeeRecords.new
+  end
+
+  def reports
+    ReportRecords.new
+  end
+end
+
+class Model
+
+  include Crypto
+
+  attr_reader :patients, :employees, :reports, :response
+  attr_accessor :view_input
+
+  def initialize
+    record_repository = RecordRepository.new
+    @patients = record_repository.patients
+    @employees = record_repository.employees
+    @reports = record_repository.reports
   end
 
   def execute_command(command)
     command_array = command.split(' ')
-    @primary_command = command_array.shift
-    @secondary_command = command_array.shift
+    @primary_command, @secondary_command = command_array
     send(@primary_command.to_sym)
   end
 
   def list_patients
-    @response = @patient_records
+    reply patients.list
   end
 
   def view_records
-    # puts "viewing records"
+    reply reports.find_all_by(:@patient_id, @secondary_command)
+  end
 
+  def add_report
+    reports.load_all
+    @input_data = {patient_id: @secondary_command}
+    reply :message
+    @previous_reply = :message
+  end
+
+  def accept_input
+    @input_data[:message] = view_input
+    reports.add(@input_data)
+    reports.save!
+  end
+
+  def delete_record
 
   end
 
-  def add_record
-    puts "adding records"
-  end
-
-  def remove_record
+  def reply(message)
+    @response = message
   end
 
   def authenticate_user(credentials)
-    username = credentials[:username]
-    user = find_by_username(username)
-    # puts user#[:password_hash]
+    user = employees.find_all_by(:@username, credentials[:username])[0]
     password = credentials[:password]
-    self.hash(password) == user[:password_hash]
+    self.hash(password.to_s) == user.password_hash
   end
 
-  def find_by_username(username)
-    employee_records.each do |employee|
-      return employee if employee[:username] == username
-    end
-  end
-
+  # def find_by_username(username)
+  #   employees.list.each do |employee|
+  #     puts employee
+  #     return employee if employee[:username] == username
+  #   end
+  # end
+end
   ##### Patient methods ####
 
-  def write_patients!
-    @patient_read_write.write_to_csv employee_records
-  end
+#   def write_patients!
+#     @patient_read_write.write_to_csv patient_records
+#   end
 
-  def load_patients
-    @patient_read_write = ReadWrite.new('patients.csv').data
-    @patient_read_write.each do |patient|
-      patient_records << Patient.new(patient)
-    end
-  end
+#   def load_patients
+#     @patient_read_write = ReadWrite.new('patients.csv').data
+#     @patient_read_write.each do |patient|
+#       patient_records << Patient.new(patient)
+#     end
+#   end
 
-  def add_patient
+#   #### Employee methods ####
 
-  end
 
-  def add_record
+#   def write_employees!
+#     @employee_read_write.write_to_csv employee_records
+#   end
 
-  end
+#   def load_employees
+#     @employee_read_write = ReadWrite.new('employees.csv').data
+#     @employee_read_write.each do |employee|
+#       employee_records << employee
+#     end
+#   end
+# end
 
-  #### Employee methods ####
+# class GhettoActiveRecord
+#   def initialize(read_write_object)
+#   end
 
-  def add_employee
-
-  end
-
-  def write_employees!
-    @employee_read_write.write_to_csv employee_records
-  end
-
-  def load_employees
-    @employee_read_write = ReadWrite.new('employees.csv').data
-    @employee_read_write.each do |employee|
-      employee_records << employee
-    end
-  end
-end
-
-class GhettoActiveRecord
-  def initialize(read_write_object)
-  end
-
-   def find_by_field(field_name, value)
-    employee_records.each do |employee|
-      return employee if employee[:username] == username
-    end
-  end
-end
+#   def find_by_field(field_name, value)
+#     employee_records.each do |employee|
+#       return employee if employee[:username] == username
+#     end
+#   end
+# end
 
 
 class ReadWrite
+
   attr_reader :filename, :headers
   attr_accessor :data
 
@@ -212,7 +238,7 @@ class ReadWrite
   end
 
   def write_to_csv! # creates and writes/overwrites csv file from array of hashes
-    CSV.open(file, 'wb') do |csv|
+    CSV.open(filename, 'wb') do |csv|
       write_header(csv)
       write_body(csv)
     end
@@ -234,19 +260,16 @@ class ReadWrite
 end
 
 class Patient
-  # @@id = 0
 
-  attr_reader :id, :name, :age, :gender, :inpatient, :records
+  attr_reader :id, :name, :age, :gender, :inpatient, :report_ids
 
   def initialize(options = {})
-    # @id = @@id
-    # @@id += 1
     @id = options[:id]
     @name = options[:name]
     @age = options[:age]
     @gender = options[:gender]
     @inpatient = options.fetch(:inpatient){ false }
-    @record_ids = []
+    @report_ids = []
   end
 
   def check_in
@@ -257,29 +280,13 @@ class Patient
     @inpatient = false
   end
 
-  def add_record(record)
-    @records << record.id
+  def add_report(report)
+    @report_ids.push report.id
   end
-
-  def record
-
-  end
-
 end
 
-# class Record
-#   @@recent_record_id = 0
-
-#   attr_reader :id, :content
-
-#   def initialize(content)
-#     @id = @@recent_record_id
-#     @@recent_record_id += 1
-#     @content = content
-#   end
-# end
-
 class Employee
+
   include Crypto
 
   attr_reader :name, :position, :salary, :age, :gender, :username, :password_hash
@@ -291,12 +298,12 @@ class Employee
     @age = options[:age]
     @gender = options[:gender]
     @username = options[:username]
-    p options[:password]
-    @password_hash = self.hash options[:password]
+    @password_hash = options[:password_hash]
   end
 end
 
 class Hospital
+
   attr_reader :employees, :patients
 
   def initialize
@@ -304,3 +311,34 @@ class Hospital
     @patients = []
   end
 end
+
+
+class Report
+
+  attr_reader :patient_id, :message
+
+  def initialize(options = {})
+    @patient_id = options[:patient_id]
+    @message = options[:message]
+  end
+end
+
+
+# all_records = Model.new
+# all_records.load
+
+# record_repository = RecordRepository.new
+# patients = record_repository.patients
+# employees = record_repository.employees
+
+# p patients.list
+# patients.list
+# patients.add(name: "username",dob: "10/13/1111")
+# patients.save
+
+# employees = record_repository.employees
+# prescriptions = record_repository.prescriptions
+
+# model = Model.new
+# model.execute_command("list_patients")
+# p model.execute_command("view_records 4")

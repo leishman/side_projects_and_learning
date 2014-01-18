@@ -1,15 +1,15 @@
 require_relative 'controller.rb'
 
-# Controller.new
+Controller.new
 
 # record_1 = Record.new("very sick")
 # record_2 = Record.new("all better")
 # p record_1.id == 0
 # p record_2.id == 1
 
-rw = ReadWrite.new('sample.csv')
+# rw = ReadWrite.new('sample.csv')
 
-a = [{a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}]
+# a = [{a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}]
 # model.write_to_csv!('sample.csv', a)
 # rw.read_from_csv
 # p rw
