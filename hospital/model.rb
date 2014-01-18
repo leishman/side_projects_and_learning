@@ -8,6 +8,80 @@ module Crypto
   end
 end
 
+class Employee
+  def self.all
+
+  end
+end
+
+all_records = Model.new
+# all_records.load
+
+record_repository = RecordRepository.new
+
+patients = record_repository.patients
+patients.list
+patients.add(name: "username",dob: "10/13/1111")
+patients.save
+
+employees = record_repository.employees
+prescriptions = record_repository.prescriptions
+
+class RecordRepository
+
+  def patients
+    PatientRecords.new
+  end
+
+end
+
+class RecordsHolder
+  def records_file
+    raise "Please implement records_file function in the subclass"
+  end
+
+  def raw_data
+    ReadWrite.new(records_file).data
+  end
+
+  def new_model(data)
+    raise "Please implement new_model that takes a hash and creates the new object in the repo"
+  end
+
+  def load_all
+    raw_data.map { |row| new_model(row) }
+  end
+
+  def all
+    @all ||= load_all
+  end
+
+  def reset!
+    @all = nil
+  end
+
+  def list
+    all
+  end
+
+  def add(data)
+    all.push new_model(data)
+  end
+end
+
+class PatientRecords < RecordsHolder
+
+  def records_file
+    'patients.csv'
+  end
+
+  def new_model(data)
+    Patient.new(data)
+  end
+
+end
+
+
 class Model
   include Crypto
   attr_reader :patient_records, :employee_records, :response
@@ -21,12 +95,13 @@ class Model
   def load_records
     load_employees
     load_patients
-    # load_records
   end
 
   def execute_command(command)
     command_array = command.split(' ')
-    send(command_array[0].to_sym)
+    @primary_command = command_array.shift
+    @secondary_command = command_array.shift
+    send(@primary_command.to_sym)
   end
 
   def list_patients
@@ -34,9 +109,13 @@ class Model
   end
 
   def view_records
+    # puts "viewing records"
+
+
   end
 
   def add_record
+    puts "adding records"
   end
 
   def remove_record
