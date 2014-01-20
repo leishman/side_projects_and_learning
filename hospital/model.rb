@@ -15,7 +15,6 @@ class RecordsHolder
   def raw_data
     @rw = ReadWrite.new(records_file)
     @raw_data ||= ReadWrite.new(records_file).data
-
   end
 
   def new_model(data)
